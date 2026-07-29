@@ -1,0 +1,62 @@
+[
+  {
+    "entity_id": "GOV-OR-OHCS",
+    "canonical_name": "Oregon Housing and Community Services",
+    "entity_type": "state agency",
+    "identifiers": [{"scheme": "agency", "value": "OHCS"}],
+    "aliases": [],
+    "jurisdiction": "Oregon",
+    "match_status": "confirmed",
+    "resolution_method": "official county source identifies the state funding authority",
+    "supporting_sources": ["SRC-CLATSOP-FAQ-2026"],
+    "reviewer": "Genesis fixture review",
+    "reviewed_at": "2026-07-29T01:30:00Z",
+    "trust_zone": "public",
+    "public_release_status": "approved"
+  },
+  {
+    "entity_id": "GOV-OR-CLATSOP",
+    "canonical_name": "Clatsop County",
+    "entity_type": "county government",
+    "identifiers": [{"scheme": "jurisdiction", "value": "Clatsop County, Oregon"}],
+    "aliases": [],
+    "jurisdiction": "Clatsop County, Oregon",
+    "match_status": "confirmed",
+    "resolution_method": "official county source and self-identification",
+    "supporting_sources": ["SRC-CLATSOP-MAC", "SRC-CLATSOP-FAQ-2026"],
+    "reviewer": "Genesis fixture review",
+    "reviewed_at": "2026-07-29T01:30:00Z",
+    "trust_zone": "public",
+    "public_release_status": "approved"
+  },
+  {
+    "entity_id": "ORG-CCA-931010260",
+    "canonical_name": "Clatsop Community Action",
+    "entity_type": "501(c)(3) nonprofit organization",
+    "identifiers": [{"scheme": "EIN", "value": "93-1010260"}],
+    "aliases": ["CCA"],
+    "jurisdiction": "Astoria, Oregon",
+    "match_status": "confirmed",
+    "resolution_method": "EIN-indexed nonprofit record plus county agreement sources",
+    "supporting_sources": ["SRC-CCA-990-INDEX", "SRC-CCA-AGREEMENT-PACKET"],
+    "reviewer": "Genesis fixture review",
+    "reviewed_at": "2026-07-29T01:30:00Z",
+    "trust_zone": "public",
+    "public_release_status": "approved"
+  },
+  {
+    "entity_id": "PRG-COLUMBIA-INN",
+    "canonical_name": "Columbia Inn Emergency Shelter",
+    "entity_type": "shelter program and facility",
+    "identifiers": [{"scheme": "LANTERN program", "value": "COLUMBIA-INN"}],
+    "aliases": ["Columbia Inn"],
+    "jurisdiction": "Astoria, Oregon",
+    "match_status": "confirmed",
+    "resolution_method": "official county project page and subrecipient agreement source",
+    "supporting_sources": ["SRC-COLUMBIA-INN-PAGE", "SRC-CCA-AGREEMENT-PACKET"],
+    "reviewer": "Genesis fixture review",
+    "reviewed_at": "2026-07-29T01:30:00Z",
+    "trust_zone": "public",
+    "public_release_status": "approved"
+  }
+]
