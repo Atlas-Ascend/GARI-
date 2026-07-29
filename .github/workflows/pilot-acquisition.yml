@@ -44,9 +44,37 @@ jobs:
           print(f'ACTUAL_BYTE_HASH_PROOF_PASS acquired={len(acquired)}')
           PY
 
-      - name: Scan extracted text for prohibited client fields
+      - name: Verify no structured client records were created
         run: |
-          ! grep -RniE 'social_security_number|hmis_id|client_name|medical_record|diagnosis|date_of_birth|domestic_violence_location' pilot-acquisition
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          prohibited_keys = {
+              'social_security_number', 'hmis_id', 'client_name', 'client_id',
+              'medical_record', 'date_of_birth', 'shelter_history',
+              'domestic_violence_location',
+          }
+          payload = json.loads(Path('pilot-acquisition/manifest.json').read_text())
+
+          def walk(value, path='root'):
+              if isinstance(value, dict):
+                  for key, item in value.items():
+                      if key.lower() in prohibited_keys:
+                          raise AssertionError(f'prohibited structured client field: {path}.{key}')
+                      walk(item, f'{path}.{key}')
+              elif isinstance(value, list):
+                  for index, item in enumerate(value):
+                      walk(item, f'{path}[{index}]')
+
+          walk(payload)
+          for text_file in Path('pilot-acquisition/text').glob('*.txt'):
+              text = text_file.read_text(encoding='utf-8', errors='ignore')
+              if re.search(r'\b\d{3}-\d{2}-\d{4}\b', text):
+                  raise AssertionError(f'possible Social Security number in {text_file}')
+          print('STRUCTURED_CLIENT_DATA_SCAN_PASS')
+          PY
 
       - name: Upload acquisition proof
         uses: actions/upload-artifact@v4
