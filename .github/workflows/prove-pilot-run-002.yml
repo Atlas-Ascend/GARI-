@@ -1,10 +1,11 @@
 name: Prove Pilot Run 002 Live
 
 on:
-  workflow_dispatch:
-  pull_request:
+  push:
+    branches: [main]
     paths:
       - ".github/workflows/prove-pilot-run-002.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
