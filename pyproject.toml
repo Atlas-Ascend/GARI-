@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gari-lantern"
+version = "0.1.0"
+description = "Evidence-governed open-source infrastructure for reconstructing public institutional financial flows."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "AGPL-3.0-or-later" }
+dependencies = [
+  "pydantic>=2.8,<3",
+  "typer>=0.12,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2,<9",
+  "ruff>=0.5,<1",
+  "mypy>=1.10,<2",
+]
+
+[project.scripts]
+lantern = "lantern.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["lantern"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["lantern"]
