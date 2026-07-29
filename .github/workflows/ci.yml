@@ -58,3 +58,20 @@ jobs:
             site/
             schemas/
           if-no-files-found: error
+
+      - name: Prove public Pages endpoint
+        run: |
+          url='https://atlas-ascend.github.io/GARI-/'
+          for attempt in $(seq 1 18); do
+            status=$(curl -L -sS -o /tmp/lantern.html -w '%{http_code}' "$url" || true)
+            echo "attempt=$attempt status=$status url=$url"
+            if [ "$status" = '200' ] && grep -q 'GARI LANTERN' /tmp/lantern.html; then
+              echo 'PAGES_LIVE_COMMAND_TO_PROOF_PASS'
+              grep -o '<title>[^<]*</title>' /tmp/lantern.html || true
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'PAGES_LIVE_COMMAND_TO_PROOF_FAIL'
+          head -c 1000 /tmp/lantern.html || true
+          exit 1
