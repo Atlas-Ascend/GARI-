@@ -1,0 +1,60 @@
+name: Pilot Evidence Acquisition
+
+on:
+  pull_request:
+    paths:
+      - "scripts/acquire_clatsop_pilot.py"
+      - ".github/workflows/pilot-acquisition.yml"
+      - "cases/LSC-OR-CLATSOP-001/**"
+      - "site/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install extraction dependency
+        run: python -m pip install 'pypdf>=5,<6'
+
+      - name: Acquire, hash, and extract public records
+        run: python scripts/acquire_clatsop_pilot.py
+
+      - name: Verify actual-byte hashes exist
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          records = json.loads(Path('pilot-acquisition/manifest.json').read_text())
+          acquired = [record for record in records if record['status'] == 'acquired']
+          assert len(acquired) >= 6, len(acquired)
+          assert all(record['sha256'] and len(record['sha256']) == 64 for record in acquired)
+          assert all(record['byte_size'] and record['byte_size'] > 0 for record in acquired)
+          print(f'ACTUAL_BYTE_HASH_PROOF_PASS acquired={len(acquired)}')
+          PY
+
+      - name: Scan extracted text for prohibited client fields
+        run: |
+          ! grep -RniE 'social_security_number|hmis_id|client_name|medical_record|diagnosis|date_of_birth|domestic_violence_location' pilot-acquisition
+
+      - name: Upload acquisition proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: clatsop-pilot-acquisition
+          path: |
+            pilot-acquisition/manifest.json
+            pilot-acquisition/PUBLIC-EVIDENCE-SUMMARY.md
+            pilot-acquisition/text/
+          if-no-files-found: error
+          retention-days: 90
