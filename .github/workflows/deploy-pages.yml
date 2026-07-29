@@ -1,9 +1,7 @@
 name: Deploy GitHub Pages
 
 on:
-  workflow_run:
-    workflows: ["Command to Proof CI"]
-    types: [completed]
+  push:
     branches: [main]
   workflow_dispatch:
 
@@ -18,7 +16,6 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -26,8 +23,6 @@ jobs:
     steps:
       - name: Checkout protected main
         uses: actions/checkout@v4
-        with:
-          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,6 +38,9 @@ jobs:
 
       - name: Compile allowlisted public bundle
         run: lantern build-public LSC-OR-CLATSOP-001
+
+      - name: Verify site entry point
+        run: test -f site/index.html
 
       - name: Configure and enable Pages
         uses: actions/configure-pages@v5
