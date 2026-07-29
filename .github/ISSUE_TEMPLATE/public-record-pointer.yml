@@ -1,0 +1,49 @@
+name: Public record pointer
+description: Point LANTERN to a public institutional record or a nonconfidential research question.
+title: "Public record: "
+labels: [source-intake]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is not a confidential whistleblower channel. Do not submit private client data, medical records, access-controlled documents, stolen material or legally privileged information.
+  - type: input
+    id: jurisdiction
+    attributes:
+      label: Jurisdiction
+      placeholder: Clatsop County, Oregon
+    validations:
+      required: true
+  - type: input
+    id: custodian
+    attributes:
+      label: Record custodian or publisher
+      placeholder: County, city, state agency, IRS, HUD, auditor
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Public URL
+      placeholder: https://...
+    validations:
+      required: true
+  - type: textarea
+    id: relevance
+    attributes:
+      label: Why this record matters
+      description: Identify the case, funding path, contract, entity, period or question it may clarify.
+    validations:
+      required: true
+  - type: textarea
+    id: location
+    attributes:
+      label: Exact location inside the source
+      description: Give page, section, table, line, cell or record identifier when possible.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: This is a public record or public question and contains no confidential client information.
+          required: true
