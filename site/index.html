@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GARI LANTERN open-source evidence infrastructure for public institutional financial accountability.">
+  <title>GARI LANTERN · Command to Proof</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to evidence portal</a>
+  <header class="site-header">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">◈</span>
+      <div>
+        <p class="eyebrow">GARI LANTERN OSS</p>
+        <h1>Command to Proof</h1>
+      </div>
+    </div>
+    <p class="header-copy">Open-source evidence infrastructure for reconstructing public institutional financial flows without converting uncertainty into accusation.</p>
+  </header>
+
+  <main id="main">
+    <section class="notice" aria-labelledby="notice-title">
+      <p class="eyebrow">Genesis boundary</p>
+      <h2 id="notice-title">Evidence engine, not accusation engine</h2>
+      <p id="case-notice">Loading case boundary…</p>
+    </section>
+
+    <section class="metrics" aria-label="Case metrics">
+      <article><span id="source-count">0</span><p>public source records</p></article>
+      <article><span id="entity-count">0</span><p>resolved public entities</p></article>
+      <article><span id="event-count">0</span><p>typed money events</p></article>
+      <article><span id="claim-count">0</span><p>release-approved claims</p></article>
+    </section>
+
+    <section class="panel" aria-labelledby="case-title-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Shadow Case 001</p>
+          <h2 id="case-title-heading">Loading case…</h2>
+        </div>
+        <span class="status" id="case-status">loading</span>
+      </div>
+      <dl class="case-grid">
+        <div><dt>Jurisdiction</dt><dd id="jurisdiction">—</dd></div>
+        <div><dt>Operating focus</dt><dd id="operating-focus">—</dd></div>
+        <div><dt>Primary period</dt><dd id="primary-period">—</dd></div>
+        <div><dt>Publication authority</dt><dd id="publication-authority">—</dd></div>
+      </dl>
+      <h3>Mission question</h3>
+      <p id="mission-question">—</p>
+    </section>
+
+    <section class="panel" aria-labelledby="flow-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Financial semantics preserved</p>
+          <h2 id="flow-heading">Public money-event path</h2>
+        </div>
+      </div>
+      <p class="muted">Awards, allocations, payments and expenditures are different event classes. Values below are not automatically additive.</p>
+      <div id="money-events" class="flow-list" aria-live="polite"></div>
+    </section>
+
+    <section class="two-column">
+      <article class="panel" aria-labelledby="entity-heading">
+        <p class="eyebrow">Canonical identity</p>
+        <h2 id="entity-heading">Resolved entities</h2>
+        <div id="entities" class="stack"></div>
+      </article>
+
+      <article class="panel" aria-labelledby="coverage-heading">
+        <p class="eyebrow">Coverage, not completeness theater</p>
+        <h2 id="coverage-heading">Evidence coverage</h2>
+        <div id="sources" class="stack"></div>
+      </article>
+    </section>
+
+    <section class="panel doctrine" aria-labelledby="doctrine-heading">
+      <p class="eyebrow">Frozen law</p>
+      <h2 id="doctrine-heading">Acquire → preserve → classify → reconcile → challenge → release</h2>
+      <ul>
+        <li>No claim without cited evidence.</li>
+        <li>No autonomous entity merge or publication.</li>
+        <li>No corruption score or suspicion leaderboard.</li>
+        <li>No client-level HMIS, medical or shelter-history data.</li>
+        <li>Missing records remain unknown, not “missing money.”</li>
+        <li>Corrections preserve the superseded statement.</li>
+      </ul>
+    </section>
+
+    <section class="panel" aria-labelledby="limitations-heading">
+      <p class="eyebrow">Known limits</p>
+      <h2 id="limitations-heading">What this Genesis build cannot establish</h2>
+      <p>It does not establish final reimbursements, payments, expenditures, utilization, housing outcomes, audit findings, related-party transactions or misconduct. Those require preserved primary records and independent professional review.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>GARI LANTERN OSS · AGPL-3.0-or-later · Public data may carry separate source conditions.</p>
+  </footer>
+  <script src="./app.js" defer></script>
+</body>
+</html>
