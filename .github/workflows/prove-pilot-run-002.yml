@@ -1,8 +1,7 @@
 name: Prove Pilot Run 002 Live
 
 on:
-  push:
-    branches: [main]
+  pull_request:
     paths:
       - ".github/workflows/prove-pilot-run-002.yml"
   workflow_dispatch:
