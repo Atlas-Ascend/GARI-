@@ -58,3 +58,27 @@ jobs:
             site/
             schemas/
           if-no-files-found: error
+
+      - name: Prove full public portal endpoint
+        run: |
+          url='https://atlas-ascend.github.io/GARI-/'
+          for attempt in $(seq 1 18); do
+            status=$(curl -L -sS -o /tmp/lantern.html -w '%{http_code}' "$url" || true)
+            echo "attempt=$attempt status=$status url=$url"
+            if [ "$status" = '200' ] \
+              && grep -q 'GARI LANTERN · Public Evidence System' /tmp/lantern.html \
+              && grep -q 'data-route="pilot"' /tmp/lantern.html \
+              && grep -q 'data-route="money"' /tmp/lantern.html \
+              && grep -q 'data-route="requests"' /tmp/lantern.html \
+              && grep -q 'data-route="governance"' /tmp/lantern.html \
+              && grep -q 'data-route="limitations"' /tmp/lantern.html; then
+              echo 'FULL_PORTAL_LIVE_COMMAND_TO_PROOF_PASS'
+              grep -o '<title>[^<]*</title>' /tmp/lantern.html || true
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'FULL_PORTAL_LIVE_COMMAND_TO_PROOF_FAIL'
+          grep -o '<title>[^<]*</title>' /tmp/lantern.html || true
+          head -c 800 /tmp/lantern.html || true
+          exit 1
