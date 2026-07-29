@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from pydantic import BaseModel
 
 from lantern.models import (
     CaseRecord,
@@ -95,7 +96,7 @@ def generate_schema(
 ) -> None:
     """Generate version-controlled JSON Schemas from canonical Pydantic models."""
     output.mkdir(parents=True, exist_ok=True)
-    models = {
+    models: dict[str, type[BaseModel]] = {
         "case": CaseRecord,
         "source": SourceRecord,
         "entity": EntityRecord,
