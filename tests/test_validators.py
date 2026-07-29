@@ -133,9 +133,10 @@ def test_blocked_claims_do_not_enter_public_projection() -> None:
 
 
 def test_missing_claim_source_is_rejected_by_schema() -> None:
+    payload = public_claim().model_dump(mode="json")
+    payload["supporting_sources"] = []
     with pytest.raises(ValidationError):
-        public_claim().model_copy(update={"supporting_sources": []}).model_dump()
-        ClaimRecord.model_validate(public_claim().model_copy(update={"supporting_sources": []}))
+        ClaimRecord.model_validate(payload)
 
 
 def test_incompatible_money_event_types_cannot_be_aggregated() -> None:
