@@ -4,40 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
-  <title>CaseGraph · Secure Review Gateway</title>
-  <style>
-    :root{color-scheme:dark;--bg:#08101d;--panel:#0d1727;--line:#22324b;--text:#eef5ff;--muted:#9eb0c7;--accent:#57d6b2;--accent2:#73a7ff}
-    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 50% 0,#13243c 0,#08101d 42%,#060b14 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
-    .shell{max-width:980px;margin:0 auto;padding:56px 22px 80px}.eyebrow{font:700 12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:var(--accent);text-transform:uppercase}.hero{margin-top:18px;padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,rgba(20,35,58,.92),rgba(10,18,31,.94));box-shadow:0 24px 80px rgba(0,0,0,.35)}
-    h1{font-size:clamp(38px,7vw,72px);line-height:.95;letter-spacing:-.055em;margin:12px 0 18px}.sub{font-size:18px;line-height:1.65;color:var(--muted);max-width:760px}.badges{display:flex;flex-wrap:wrap;gap:9px;margin:24px 0}.badge{border:1px solid var(--line);border-radius:999px;padding:8px 11px;font:700 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:#cfe0f7;background:#0a1423}
-    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}.button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-weight:800;border-radius:13px;padding:14px 18px;border:1px solid var(--line);color:var(--text);background:#101d31}.button.primary{background:linear-gradient(135deg,var(--accent),#46b7d8);color:#041116;border:0}.button:hover{transform:translateY(-1px)}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.card{padding:20px;border:1px solid var(--line);border-radius:18px;background:rgba(11,20,35,.78)}.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.11em;margin:0 0 9px;color:#dce8f7}.card p{margin:0;color:var(--muted);line-height:1.55;font-size:14px}.notice{margin-top:18px;padding:17px 19px;border-left:3px solid var(--accent2);background:#0a1423;border-radius:0 12px 12px 0;color:#b9cae1;line-height:1.6}.footer{margin-top:28px;color:#73859d;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
-    @media(max-width:720px){.shell{padding-top:28px}.hero{padding:24px}.grid{grid-template-columns:1fr}h1{font-size:48px}.actions{flex-direction:column}.button{width:100%}}
-  </style>
+  <meta name="referrer" content="no-referrer" />
+  <title>Esperanza CaseGraph · Investigator Portal</title>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <main class="shell">
-    <section class="hero">
-      <div class="eyebrow">GARI · CaseGraph</div>
-      <h1>Secure Review Gateway</h1>
-      <p class="sub">CaseGraph is a provenance-preserving evidence graph and investigative review architecture. The live case environment remains intentionally private and is served from the protected production portal. This GitHack surface exposes the gateway only, not private evidence, credentials, native records, or unpublished analysis.</p>
-      <div class="badges">
-        <span class="badge">COMMAND-TO-PROOF</span><span class="badge">PROVENANCE-FIRST</span><span class="badge">PRIVATE RECORD</span><span class="badge">COLD-REVIEW READY</span>
-      </div>
-      <div class="actions">
-        <a class="button primary" href="https://nextjs-ghost-atlas.vercel.app" rel="noreferrer">Open Protected CaseGraph →</a>
-        <a class="button" href="https://github.com/Atlas-Ascend/GARI-" rel="noreferrer">GARI Repository</a>
-      </div>
-    </section>
-
-    <section class="grid" aria-label="CaseGraph architecture summary">
-      <article class="card"><h2>Evidence Graph</h2><p>Events, sources, actors, requests, responses, issues, contradictions and provenance are modeled as addressable objects and relationships.</p></article>
-      <article class="card"><h2>Source Truth</h2><p>Originals, preserved derivatives, native source locators and uncertainty remain distinct. Presentation never outranks the underlying record.</p></article>
-      <article class="card"><h2>Reviewer Surface</h2><p>The protected portal is designed so a cold reviewer can reconstruct material chronology and inspect support without oral narration.</p></article>
-    </section>
-
-    <div class="notice"><strong>Security boundary:</strong> GitHack is a static public file-delivery service. It cannot safely host the private evidence vault, server APIs, Gmail OAuth, reviewer authorization, or privileged material. Those remain on the protected production environment.</div>
-    <div class="footer">CASEGRAPH PUBLIC GATEWAY · No private case evidence is embedded in this page · Production record remains access-controlled</div>
-  </main>
+  <div id="app"></div>
+  <script src="./data.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
