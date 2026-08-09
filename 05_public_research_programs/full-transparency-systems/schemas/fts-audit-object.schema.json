@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ghostatlas.example/schemas/fts-audit-object.schema.json",
+  "title": "FTS Universal Audit Object",
+  "type": "object",
+  "required": ["id", "object_type", "audit_id", "state", "created_at", "provenance"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "audit_id": {"type": "string", "minLength": 1},
+    "object_type": {
+      "type": "string",
+      "enum": [
+        "SYSTEM", "COMPONENT", "ACTOR", "CLAIM", "EVENT", "SOURCE", "EVIDENCE",
+        "RULE", "CONTROL", "DECISION", "INTERFACE", "INCENTIVE", "DEPENDENCY", "RISK",
+        "IMPACT", "FAILURE", "REMEDY", "TEST", "FINDING", "VERDICT", "RECEIPT", "VERSION",
+        "CONTRADICTION", "OPEN_QUESTION", "CONTROL_PACK"
+      ]
+    },
+    "name": {"type": "string"},
+    "description": {"type": "string"},
+    "domain_native_type": {"type": ["string", "null"]},
+    "state": {"type": "string", "minLength": 1},
+    "claim_state": {
+      "type": ["string", "null"],
+      "enum": [null, "ASSERTED", "SOURCE_ANCHORED", "CORROBORATED", "CONTESTED", "CONTRADICTED", "PROVISIONAL", "VERIFIED", "RETRACTED", "SUPERSEDED", "UNRESOLVED"]
+    },
+    "completion_state": {
+      "type": ["string", "null"],
+      "enum": [null, "NOT_STARTED", "IN_PROGRESS", "BLOCKED", "EXECUTED", "TESTED", "VERIFIED", "PROMOTED", "PUBLISHED", "ARCHIVED"]
+    },
+    "verdict": {
+      "type": ["string", "null"],
+      "enum": [null, "PASS", "PASS_WITH_GAPS", "REPAIR_REQUIRED", "BLOCKED", "FAIL", "INSUFFICIENT_EVIDENCE", "OUT_OF_SCOPE"]
+    },
+    "event_time": {"type": ["string", "null"], "format": "date-time"},
+    "capture_time": {"type": ["string", "null"], "format": "date-time"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": ["string", "null"], "format": "date-time"},
+    "source_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "evidence_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "control_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "related_object_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "owner_actor_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "privacy_class": {
+      "type": "string",
+      "enum": ["PUBLIC", "REVIEWER", "INTERNAL", "RESTRICTED", "SECRET"]
+    },
+    "materiality": {"type": ["string", "null"], "enum": [null, "LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+    "confidence": {
+      "type": "object",
+      "properties": {
+        "provenance": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "authenticity": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "relevance": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "corroboration": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "completeness": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["ingest_route"],
+      "properties": {
+        "source_location": {"type": ["string", "null"]},
+        "ingest_route": {"type": "string"},
+        "collector": {"type": ["string", "null"]},
+        "sha256": {"type": ["string", "null"], "pattern": "^[A-Fa-f0-9]{64}$"},
+        "transform_parent_ids": {"type": "array", "items": {"type": "string"}},
+        "archive_pointer": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "payload": {"type": "object", "additionalProperties": true}
+  },
+  "additionalProperties": true
+}
