@@ -1,0 +1,102 @@
+{
+  "schema": "LIT_FAMILY_REUNION_COMMAND_TO_PROOF_RECEIPT_V1",
+  "created_at_local": "2026-08-18T17:46:00-07:00",
+  "project": "Ghost Atlas Research Institute site workorder",
+  "organ": "GARI / Ghost Atlas Research Institute",
+  "baseline": {
+    "repository": "Atlas-Ascend/GARI-",
+    "repository_visibility": "public",
+    "default_branch": "main",
+    "work_branch": "institute-site-workorder-2026-08-18",
+    "repo_active_baseline": "GARI LANTERN OSS command-to-proof infrastructure for public institutional financial accountability",
+    "runtime_detected": "Python package gari-lantern, requires Python >=3.12, Typer CLI entry point lantern=lantern.cli:app",
+    "root_paths_observed": [
+      ".github",
+      "casegraph",
+      "cases",
+      "docs",
+      "lantern",
+      "scripts",
+      "site",
+      "tests",
+      "README.md",
+      "pyproject.toml",
+      "SECURITY.md"
+    ],
+    "branches_observed": [
+      "main",
+      "gh-pages",
+      "agent/enable-lantern-pages",
+      "agent/esperanza-master-case-spine",
+      "agent/finish-pilot-publication",
+      "agent/fix-pages-live",
+      "agent/fts-universal-audit-convergence",
+      "agent/full-portal-pilot",
+      "agent/lantern-genesis",
+      "agent/pages-live-proof",
+      "agent/prove-full-portal-live"
+    ]
+  },
+  "status": "PARTIAL",
+  "recovered": [
+    "Existing GitHub repository located and inspected",
+    "Existing baseline identified as GARI LANTERN OSS rather than the GPT Institute site source",
+    "Default branch main confirmed",
+    "Existing root paths and pyproject runtime inspected",
+    "Existing README semantics recovered as command-to-proof infrastructure for public institutional financial accountability"
+  ],
+  "executed": [
+    "Created non-destructive work branch institute-site-workorder-2026-08-18 from main",
+    "Created machine-readable ProofGrid receipt artifact on the work branch"
+  ],
+  "patched": [
+    "No production code modified",
+    "No live GPT site modified",
+    "No Empire, Consulting, or Automation surfaces modified",
+    "Added isolated Institute workorder proof artifact under institute-site-workorder/proofgrid/"
+  ],
+  "created": [
+    "institute-site-workorder/proofgrid/command_to_proof_receipt.json"
+  ],
+  "verified": [
+    "Repository metadata readable through GitHub connector",
+    "Branch creation succeeded through GitHub connector",
+    "Artifact creation succeeded through GitHub connector",
+    "Runtime identified from pyproject.toml as Python >=3.12 with lantern CLI",
+    "READY not assigned to GPT site, EDEN, HYPERNET, OMNIMIND, or VISHVARUPA because they were not executable/verified in this tool context"
+  ],
+  "artifact": {
+    "type": "proof.json",
+    "path": "institute-site-workorder/proofgrid/command_to_proof_receipt.json",
+    "branch": "institute-site-workorder-2026-08-18",
+    "route": "THOTH / ProofGrid"
+  },
+  "upstream": [
+    "Existing Atlas-Ascend/GARI- repository",
+    "GARI LANTERN OSS baseline on main",
+    "User-provided Institute screenshots and current GARI research-office definitions from the conversation"
+  ],
+  "downstream": [
+    "Ghost Atlas Institute GPT site builder",
+    "Thoth archive / ProofGrid receipt stream",
+    "Future local EDEN working copy",
+    "Future Office Fabric and OMNIMIND / Atlas Mind routing"
+  ],
+  "blockers": [
+    "Local EDEN runtime is not directly accessible from this connector session",
+    "GPT site editor/runtime is not directly accessible from this connector session",
+    "No runnable tests executed because only GitHub remote inspection/write access was available",
+    "Existing repo baseline is GARI LANTERN, so Institute site truth must remain isolated until explicitly promoted"
+  ],
+  "readiness": {
+    "repo_branch_ready": true,
+    "proof_artifact_ready": true,
+    "local_eden_verified": false,
+    "gpt_site_verified": false,
+    "omnimind_verified": false,
+    "hypernet_verified": false,
+    "vishvarupa_verified": false,
+    "ready_for_reunion": "PARTIAL"
+  },
+  "next_command": "Populate institute-site-workorder/ with manifest.json, status.json, GARI research galaxy, GARI systems layer, and GPT site command files, then fetch the artifact back and verify its blob fingerprint before any GPT site publication."
+}
