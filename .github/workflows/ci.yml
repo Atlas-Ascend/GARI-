@@ -15,41 +15,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
       - name: Install
         run: python -m pip install -e '.[dev]'
-
       - name: Lint
         run: ruff check .
-
       - name: Type check
         run: mypy
-
       - name: Test adversarial gates
         run: pytest -q
-
       - name: Generate JSON Schemas
         run: lantern generate-schema
-
       - name: Validate Clatsop shadow case
         run: lantern validate LSC-OR-CLATSOP-001
-
       - name: Compile allowlisted public data
         run: lantern build-public LSC-OR-CLATSOP-001
-
       - name: Verify public artifact exists
         run: test -s site/data/case.json
-
       - name: Scan generated site for prohibited keys
         run: |
           ! grep -RniE 'client_name|client_id|hmis_id|social_security_number|medical_record|diagnosis|date_of_birth|shelter_history' site
-
       - name: Upload proof artifact
         uses: actions/upload-artifact@v4
         with:
@@ -75,10 +64,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Restore exact binary Tier 3 source
+      - name: Restore Homeward source files directly
         run: |
-          unzip -q games/new-atlantis-homeward-tier3-source.zip -d tier3
+          cp -R games/homeward-tier3-fix1 tier3
           grep -q "applicationId 'com.ghostatlas.newatlantis.homeward'" tier3/app/build.gradle
+          test -s tier3/app/src/main/java/com/ghostatlas/homeward/GameView.java
       - name: Homecoming rules proof
         working-directory: tier3
         run: |
