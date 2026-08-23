@@ -21,8 +21,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Unpack Tier 3 source
-        run: unzip -q games/new-atlantis-homeward-tier3-source.zip -d tier3
+      - name: Restore Tier 3 source
+        run: |
+          base64 -d games/new-atlantis-homeward-tier3-source.b64 > New-Atlantis-HOMEWARD-TIER3-SOURCE.zip
+          unzip -t New-Atlantis-HOMEWARD-TIER3-SOURCE.zip
+          unzip -q New-Atlantis-HOMEWARD-TIER3-SOURCE.zip -d tier3
       - name: Tier 3 homecoming proof
         working-directory: tier3
         run: |
@@ -48,5 +51,5 @@ jobs:
             tier3/Ghost-Atlas-NHCM5-New-Atlantis-HOMEWARD-TIER3.apk
             tier3/APK_SHA256.txt
             tier3/HOMEWARD_TIER3_PROOF.txt
-            games/new-atlantis-homeward-tier3-source.zip
+            New-Atlantis-HOMEWARD-TIER3-SOURCE.zip
           if-no-files-found: error
