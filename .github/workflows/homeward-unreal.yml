@@ -1,0 +1,70 @@
+name: HOMEWARD Unreal 5.8
+
+on:
+  push:
+    branches:
+      - build/new-atlantis-homeward-unreal-5.8
+    paths:
+      - 'games/homeward-unreal/**'
+      - '.github/workflows/homeward-unreal.yml'
+  pull_request:
+    paths:
+      - 'games/homeward-unreal/**'
+      - '.github/workflows/homeward-unreal.yml'
+  workflow_dispatch:
+    inputs:
+      package_gpu:
+        description: 'Package and smoke-run on a registered UE5.8 GPU runner'
+        type: boolean
+        default: false
+
+jobs:
+  source_contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate project descriptor
+        run: python -m json.tool games/homeward-unreal/Homeward.uproject >/dev/null
+      - name: Verify Unreal project spine
+        run: |
+          set -euo pipefail
+          test -s games/homeward-unreal/Homeward.uproject
+          test -s games/homeward-unreal/Source/Homeward/Homeward.Build.cs
+          test -s games/homeward-unreal/Source/Homeward/Homeward.cpp
+          test -s games/homeward-unreal/Source/Homeward/HomewardGameMode.cpp
+          test -s games/homeward-unreal/Source/Homeward/HomewardCharacter.cpp
+          test -s games/homeward-unreal/Source/Homeward/HomewardWorldDirector.cpp
+          test -s games/homeward-unreal/Scripts/Setup-Unreal58.ps1
+          test -s games/homeward-unreal/Scripts/Package-And-PixelStream.ps1
+      - name: Verify design invariants
+        run: |
+          set -euo pipefail
+          grep -q '"EngineAssociation": "5.8"' games/homeward-unreal/Homeward.uproject
+          grep -q '"Name": "PixelStreaming2"' games/homeward-unreal/Homeward.uproject
+          grep -q 'HORIZON TEA' games/homeward-unreal/Source/Homeward/HomewardWorldDirector.cpp
+          grep -q 'RAINBOW ELIXIR' games/homeward-unreal/Source/Homeward/HomewardWorldDirector.cpp
+          grep -q "YOU.RE HOME\|YOU'RE HOME" games/homeward-unreal/Source/Homeward/HomewardWorldDirector.cpp
+          grep -qi 'no combat' games/homeward-unreal/README.md
+
+  package_gpu:
+    if: github.event_name == 'workflow_dispatch' && inputs.package_gpu == true
+    runs-on: [self-hosted, Windows, X64, unreal-5.8, gpu]
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Unreal installation
+        shell: pwsh
+        run: |
+          if (-not $env:UE_ROOT) { throw 'UE_ROOT is not configured on the runner.' }
+          $uat = Join-Path $env:UE_ROOT 'Engine\Build\BatchFiles\RunUAT.bat'
+          if (-not (Test-Path $uat)) { throw "RunUAT missing: $uat" }
+      - name: Package and launch Pixel Streaming smoke test
+        shell: pwsh
+        run: |
+          ./games/homeward-unreal/Scripts/Package-And-PixelStream.ps1 -UE_ROOT $env:UE_ROOT
+      - name: Upload packaged Unreal build
+        uses: actions/upload-artifact@v4
+        with:
+          name: HOMEWARD-Unreal-5.8-Win64
+          path: games/homeward-unreal/Build/PixelStreaming/
+          if-no-files-found: error
