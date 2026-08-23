@@ -21,6 +21,7 @@ The vertical slice includes:
 - no combat or health loop
 - explicit win condition: reach the tribe in Eden Commons after completing the homeward route
 - Pixel Streaming 2 enabled in `Homeward.uproject`
+- GitHub source-contract CI plus a self-hosted UE5.8 GPU package/smoke-run lane
 
 ## Engine installation
 
