@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    if: github.head_ref == 'build/new-atlantis-homeward-apk'
+    if: github.head_ref == 'build/new-atlantis-homeward-apk-v2'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -21,20 +21,18 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Unpack HOMEWARD source
-        run: unzip -q homeward-cloud-project.zip -d homeward
       - name: Pure Java homecoming proof
-        working-directory: homeward
+        working-directory: games/new-atlantis-homeward
         run: |
-          mkdir -p proof-classes
+          rm -rf proof-classes && mkdir -p proof-classes
           javac -d proof-classes app/src/main/java/com/ghostatlas/homeward/Core.java proof/HomewardProof.java
           java -cp proof-classes com.ghostatlas.homeward.HomewardProof | tee HOMEWARD_RULE_PROOF.txt
           grep -q HOMEWARD_PROOF_OK HOMEWARD_RULE_PROOF.txt
       - name: Build native Android APK
-        working-directory: homeward
+        working-directory: games/new-atlantis-homeward
         run: gradle :app:assembleDebug --no-daemon
       - name: Verify and name APK
-        working-directory: homeward
+        working-directory: games/new-atlantis-homeward
         run: |
           APK=app/build/outputs/apk/debug/app-debug.apk
           test -f "$APK"
@@ -45,7 +43,7 @@ jobs:
         with:
           name: New-Atlantis-HOMEWARD-APK
           path: |
-            homeward/Ghost-Atlas-NHCM5-New-Atlantis-HOMEWARD.apk
-            homeward/APK_SHA256.txt
-            homeward/HOMEWARD_RULE_PROOF.txt
+            games/new-atlantis-homeward/Ghost-Atlas-NHCM5-New-Atlantis-HOMEWARD.apk
+            games/new-atlantis-homeward/APK_SHA256.txt
+            games/new-atlantis-homeward/HOMEWARD_RULE_PROOF.txt
           if-no-files-found: error
