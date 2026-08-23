@@ -58,3 +58,68 @@ jobs:
             site/
             schemas/
           if-no-files-found: error
+
+  homeward_fix_install:
+    if: startsWith(github.head_ref, 'build/new-atlantis-homeward-tier3-fix1')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: yes | sdkmanager "platforms;android-35" "build-tools;35.0.1" >/dev/null
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Restore fixed Tier 3 source
+        run: |
+          base64 -d games/new-atlantis-homeward-tier3-source.b64 > /tmp/homeward.zip
+          unzip -q /tmp/homeward.zip -d tier3
+          grep -q "applicationId 'com.ghostatlas.newatlantis.homeward'" tier3/app/build.gradle
+      - name: Homecoming rules proof
+        working-directory: tier3
+        run: |
+          mkdir -p proof-classes
+          javac -encoding UTF-8 -d proof-classes app/src/main/java/com/ghostatlas/homeward/Core.java proof/HomewardProof.java
+          java -cp proof-classes com.ghostatlas.homeward.HomewardProof | tee HOMEWARD_TIER3_FIX_PROOF.txt
+          grep -q HOMEWARD_TIER3_PROOF_OK HOMEWARD_TIER3_FIX_PROOF.txt
+      - name: Build native APK
+        working-directory: tier3
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Verify package and signature
+        working-directory: tier3
+        run: |
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          test -f "$APK"
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$APK"
+          "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$APK" | tee APK_BADGING.txt
+          grep -q "package: name='com.ghostatlas.newatlantis.homeward'" APK_BADGING.txt
+          sha256sum "$APK" | tee APK_SHA256.txt
+          cp "$APK" Ghost-Atlas-NHCM5-New-Atlantis-HOMEWARD-TIER3-FIX1.apk
+      - name: Emulator install and launch proof
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            adb install -r tier3/Ghost-Atlas-NHCM5-New-Atlantis-HOMEWARD-TIER3-FIX1.apk
+            adb shell am start -W -n com.ghostatlas.newatlantis.homeward/com.ghostatlas.homeward.MainActivity | tee tier3/ANDROID_LAUNCH_PROOF.txt
+            adb shell pidof com.ghostatlas.newatlantis.homeward | tee -a tier3/ANDROID_LAUNCH_PROOF.txt
+            test -s tier3/ANDROID_LAUNCH_PROOF.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: New-Atlantis-HOMEWARD-TIER3-FIX1
+          path: |
+            tier3/Ghost-Atlas-NHCM5-New-Atlantis-HOMEWARD-TIER3-FIX1.apk
+            tier3/APK_SHA256.txt
+            tier3/APK_BADGING.txt
+            tier3/HOMEWARD_TIER3_FIX_PROOF.txt
+            tier3/ANDROID_LAUNCH_PROOF.txt
+          if-no-files-found: error
