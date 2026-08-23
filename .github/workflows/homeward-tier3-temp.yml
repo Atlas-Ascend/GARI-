@@ -1,0 +1,52 @@
+name: Temporary Build New Atlantis HOMEWARD Tier 3
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: github.head_ref == 'build/new-atlantis-homeward-tier3-final'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: yes | sdkmanager "platforms;android-35" "build-tools;35.0.1" >/dev/null
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Unpack Tier 3 source
+        run: unzip -q games/new-atlantis-homeward-tier3-source.zip -d tier3
+      - name: Tier 3 homecoming proof
+        working-directory: tier3
+        run: |
+          mkdir -p proof-classes
+          javac -encoding UTF-8 -d proof-classes app/src/main/java/com/ghostatlas/homeward/Core.java proof/HomewardProof.java
+          java -cp proof-classes com.ghostatlas.homeward.HomewardProof | tee HOMEWARD_TIER3_PROOF.txt
+          grep -q HOMEWARD_TIER3_PROOF_OK HOMEWARD_TIER3_PROOF.txt
+      - name: Build native Tier 3 APK
+        working-directory: tier3
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Verify Tier 3 APK
+        working-directory: tier3
+        run: |
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          test -f "$APK"
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose "$APK"
+          sha256sum "$APK" | tee APK_SHA256.txt
+          cp "$APK" Ghost-Atlas-NHCM5-New-Atlantis-HOMEWARD-TIER3.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: New-Atlantis-HOMEWARD-TIER3
+          path: |
+            tier3/Ghost-Atlas-NHCM5-New-Atlantis-HOMEWARD-TIER3.apk
+            tier3/APK_SHA256.txt
+            tier3/HOMEWARD_TIER3_PROOF.txt
+            games/new-atlantis-homeward-tier3-source.zip
+          if-no-files-found: error
