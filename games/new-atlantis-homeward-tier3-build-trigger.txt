@@ -1,4 +1,5 @@
 HOMEWARD TIER 3 FIX1
 reason=unique_package_id_and_real_android_install_launch_proof
 package=com.ghostatlas.newatlantis.homeward
-sync=4
+source_transfer=exact_binary_blob
+sync=5
