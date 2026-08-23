@@ -1,0 +1,12 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.8",
+  "Category": "Games",
+  "Description": "Ghost Atlas: New Atlantis HOMEWARD. A non-combat Unreal Engine journey built around foraging, alchemy, wizard encounters, navigation, and returning home to the tribe.",
+  "Modules": [
+    { "Name": "Homeward", "Type": "Runtime", "LoadingPhase": "Default" }
+  ],
+  "Plugins": [
+    { "Name": "PixelStreaming2", "Enabled": true }
+  ]
+}
