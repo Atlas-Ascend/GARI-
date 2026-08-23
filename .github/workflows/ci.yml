@@ -75,10 +75,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Restore fixed Tier 3 source
+      - name: Restore exact binary Tier 3 source
         run: |
-          base64 -d games/new-atlantis-homeward-tier3-source.b64 > /tmp/homeward.zip
-          unzip -q /tmp/homeward.zip -d tier3
+          unzip -q games/new-atlantis-homeward-tier3-source.zip -d tier3
           grep -q "applicationId 'com.ghostatlas.newatlantis.homeward'" tier3/app/build.gradle
       - name: Homecoming rules proof
         working-directory: tier3
