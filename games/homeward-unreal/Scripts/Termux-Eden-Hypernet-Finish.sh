@@ -4,10 +4,7 @@ set -Eeuo pipefail
 printf '\n🜂 Ghost Atlas HOMEWARD Hypernet Finish Launcher\n'
 printf 'Termux → Tailscale → EDEN → Unreal 5.8 → Pixel Streaming proof\n\n'
 
-pkg_ready() {
-  command -v pkg >/dev/null 2>&1
-}
-
+pkg_ready() { command -v pkg >/dev/null 2>&1; }
 when_pkg_install() {
   if pkg_ready; then
     pkg update -y >/dev/null || true
@@ -15,20 +12,54 @@ when_pkg_install() {
   fi
 }
 
+is_ipv4() { printf '%s' "$1" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; }
+can_resolve_host() {
+  local host="$1"
+  is_ipv4 "$host" && return 0
+  command -v getent >/dev/null 2>&1 && getent hosts "$host" >/dev/null 2>&1 && return 0
+  command -v ping >/dev/null 2>&1 && ping -c 1 -W 1 "$host" >/dev/null 2>&1 && return 0
+  return 1
+}
+
+discover_tailnet_eden() {
+  command -v tailscale >/dev/null 2>&1 || return 1
+  tailscale status >/dev/null 2>&1 || true
+
+  if command -v jq >/dev/null 2>&1; then
+    tailscale status --json 2>/dev/null | jq -r '
+      .Peer[]?
+      | select(
+          ((.HostName // "") | test("eden|cali|janus|shambala|shangri|gaia|ghost|desktop|windows"; "i")) or
+          ((.DNSName // "") | test("eden|cali|janus|shambala|shangri|gaia|ghost|desktop|windows"; "i"))
+        )
+      | .TailscaleIPs[0]
+    ' | grep -E '^100\.' | head -n 1
+  fi
+
+  tailscale status 2>/dev/null | awk 'BEGIN{IGNORECASE=1} /eden|cali|janus|shambala|shangri|gaia|ghost|desktop|windows/ && $1 ~ /^100\./ {print $1; exit}'
+}
+
 when_pkg_install
 
 EDEN_USER="${EDEN_USER:-Raymond}"
 EDEN_HOST="${EDEN_HOST:-eden}"
 EDEN_PORT="${EDEN_PORT:-22}"
+
+printf 'Requested EDEN target: %s@%s:%s\n' "$EDEN_USER" "$EDEN_HOST" "$EDEN_PORT"
+printf 'Resolving EDEN through Tailnet truth...\n'
+
+if ! can_resolve_host "$EDEN_HOST"; then
+  FOUND_EDEN="$(discover_tailnet_eden | head -n 1 || true)"
+  if [ -n "${FOUND_EDEN:-}" ]; then
+    EDEN_HOST="$FOUND_EDEN"
+  fi
+fi
+
 TARGET="${EDEN_USER}@${EDEN_HOST}"
 SSH_OPTS=(-p "$EDEN_PORT" -o ConnectTimeout=8 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o StrictHostKeyChecking=accept-new)
 
 printf 'EDEN target: %s:%s\n' "$TARGET" "$EDEN_PORT"
 printf 'Checking Tailnet/SSH reachability...\n'
-
-if command -v tailscale >/dev/null 2>&1; then
-  tailscale status >/dev/null 2>&1 || true
-fi
 
 REMOTE_TEST='powershell -NoProfile -ExecutionPolicy Bypass -Command "if ((Test-Path C:\Ghost) -and ($env:OS -match '\''Windows'\'')) { Write-Output '\''EDEN_READY'\'' } else { throw '\''Not physical EDEN: C:\Ghost missing or OS invalid.'\'' }"'
 
@@ -162,7 +193,7 @@ catch {
 POWERSHELL
 
 printf 'Copying bounded EDEN finish script...\n'
-scp "${SSH_OPTS[@]}" "$PS1" "$TARGET:GA-HOMEWARD-FINISH.ps1"
+scp "${SSH_OPTS[@]}" "$PS1" "${TARGET}:GA-HOMEWARD-FINISH.ps1"
 
 printf 'Executing on EDEN through the Hypernet...\n'
 ssh "${SSH_OPTS[@]}" "$TARGET" 'powershell -NoProfile -ExecutionPolicy Bypass -File GA-HOMEWARD-FINISH.ps1'
