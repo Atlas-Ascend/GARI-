@@ -42,8 +42,9 @@ discover_tailnet_eden() {
 when_pkg_install
 
 EDEN_USER="${EDEN_USER:-Raymond}"
-EDEN_HOST="${EDEN_HOST:-eden}"
+EDEN_HOST="${EDEN_HOST:-100.83.241.3}"
 EDEN_PORT="${EDEN_PORT:-22}"
+EDEN_SSH_KEY="${EDEN_SSH_KEY:-$HOME/.ssh/id_ed25519}"
 
 printf 'Requested EDEN target: %s@%s:%s\n' "$EDEN_USER" "$EDEN_HOST" "$EDEN_PORT"
 printf 'Resolving EDEN through Tailnet truth...\n'
@@ -57,6 +58,13 @@ fi
 
 TARGET="${EDEN_USER}@${EDEN_HOST}"
 SSH_OPTS=(-p "$EDEN_PORT" -o ConnectTimeout=8 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o StrictHostKeyChecking=accept-new)
+if [ -f "$EDEN_SSH_KEY" ]; then
+  chmod 600 "$EDEN_SSH_KEY" >/dev/null 2>&1 || true
+  SSH_OPTS+=(-i "$EDEN_SSH_KEY" -o IdentitiesOnly=yes)
+  printf 'Using SSH key: %s\n' "$EDEN_SSH_KEY"
+else
+  printf 'No SSH key found at %s; OpenSSH will request password.\n' "$EDEN_SSH_KEY"
+fi
 
 printf 'EDEN target: %s:%s\n' "$TARGET" "$EDEN_PORT"
 printf 'Checking Tailnet/SSH reachability...\n'
