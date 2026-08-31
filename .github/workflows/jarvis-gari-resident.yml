@@ -1,4 +1,4 @@
-name: JARVIS GARI Resident Promotion
+name: JARVIS GARI Resident Contract
 
 on:
   push:
@@ -9,121 +9,130 @@ on:
       - 'cases/**'
       - 'pyproject.toml'
       - '.github/workflows/jarvis-gari-resident.yml'
+  pull_request:
+    paths:
+      - 'lantern/resident.py'
+      - 'lantern/models.py'
+      - 'lantern/validators.py'
+      - 'cases/**'
+      - 'pyproject.toml'
+      - '.github/workflows/jarvis-gari-resident.yml'
   workflow_dispatch:
 
+concurrency:
+  group: jarvis-gari-resident-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  promote:
-    runs-on: [self-hosted, windows]
-    timeout-minutes: 15
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout GARI
         uses: actions/checkout@v4
 
-      - name: Promote bounded JARVIS resident on EDEN
-        shell: powershell -NoProfile -ExecutionPolicy Bypass -File {0}
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install package
         run: |
-          $ErrorActionPreference='Stop'
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[dev]'
 
-          $BootstrapPython = 'E:\Atlantis\12-RUNTIME\Python\3.12.10\python.exe'
-          $RuntimeRoot     = 'E:\Atlantis\12-RUNTIME\GARI-JARVIS'
-          $AppRoot         = Join-Path $RuntimeRoot 'app'
-          $VenvRoot        = Join-Path $RuntimeRoot '.venv'
-          $VenvPython      = Join-Path $VenvRoot 'Scripts\python.exe'
-          $ReceiptRoot     = 'E:\Atlantis\13-PROOF\GARI-JARVIS\receipts'
-          $ProofRoot       = 'E:\Atlantis\13-PROOF\GARI-JARVIS'
-          $Port            = 8772
+      - name: Static checks
+        run: |
+          python -m py_compile lantern/resident.py
+          ruff check lantern/resident.py
+          mypy lantern/resident.py
 
-          if(-not (Test-Path -LiteralPath $BootstrapPython)){ throw "PYTHON_MISSING=$BootstrapPython" }
-          New-Item -ItemType Directory -Force -Path $RuntimeRoot,$ReceiptRoot,$ProofRoot | Out-Null
+      - name: Start bounded JARVIS resident
+        run: |
+          mkdir -p .proof/jarvis-gari/receipts
+          python -m lantern.resident \
+            --host 127.0.0.1 \
+            --port 8772 \
+            --case-root cases \
+            --receipt-root .proof/jarvis-gari/receipts \
+            > .proof/jarvis-gari/stdout.log \
+            2> .proof/jarvis-gari/stderr.log &
+          echo $! > .proof/jarvis-gari/pid
 
-          Write-Host '=== REPOSITORY STATIC PROOF ==='
-          & $BootstrapPython -m py_compile (Join-Path $env:GITHUB_WORKSPACE 'lantern\resident.py')
-          if($LASTEXITCODE -ne 0){ throw 'JARVIS_RESIDENT_PY_COMPILE_FAILED' }
+      - name: Prove resident contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8772/gari/v1/status > .proof/jarvis-gari/status.json; then
+              break
+            fi
+            sleep 0.5
+          done
+          python - <<'PY'
+          import json
+          from pathlib import Path
 
-          if(Test-Path -LiteralPath $AppRoot){ Remove-Item -LiteralPath $AppRoot -Recurse -Force }
-          New-Item -ItemType Directory -Force -Path $AppRoot | Out-Null
-          Copy-Item -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'lantern') -Destination $AppRoot -Recurse -Force
-          Copy-Item -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'cases') -Destination $AppRoot -Recurse -Force
-          Copy-Item -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'pyproject.toml') -Destination $AppRoot -Force
-          Copy-Item -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'README.md') -Destination $AppRoot -Force
+          status = json.loads(Path('.proof/jarvis-gari/status.json').read_text())
+          assert status['ok'] is True
+          assert status['schema'] == 'ghost-atlas.gari-jarvis-resident.v1'
+          assert status['resident'] == 'JARVIS'
+          assert status['domain'] == 'GARI'
+          assert status['state'] == 'LIVE'
+          assert 'LSC-OR-CLATSOP-001' in status['cases']
+          assert status['authority_ceiling']['may_not']
+          PY
 
-          if(-not (Test-Path -LiteralPath $VenvPython)){
-            & $BootstrapPython -m venv $VenvRoot
-            if($LASTEXITCODE -ne 0){ throw 'JARVIS_VENV_CREATE_FAILED' }
+          curl -fsS http://127.0.0.1:8772/gari/v1/capabilities > .proof/jarvis-gari/capabilities.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          caps = json.loads(Path('.proof/jarvis-gari/capabilities.json').read_text())
+          assert caps['ok'] is True
+          assert caps['publication_authority'] is False
+          research = next(item for item in caps['capabilities'] if item['id'] == 'research.synthesize')
+          assert research['provable'] is True
+          PY
+
+          curl -fsS \
+            -H 'Content-Type: application/json' \
+            --data '{"case_id":"LSC-OR-CLATSOP-001","query":"Return bounded case posture only."}' \
+            http://127.0.0.1:8772/gari/v1/context \
+            > .proof/jarvis-gari/context.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          context = json.loads(Path('.proof/jarvis-gari/context.json').read_text())
+          assert context['ok'] is True
+          assert context['mode'] == 'CONTEXT_ONLY'
+          assert context['case']['case_id'] == 'LSC-OR-CLATSOP-001'
+          assert context['receipt']['id']
+          assert context['receipt']['publication_authority'] is False
+          receipt_path = Path(context['receipt']['receipt_path'])
+          assert receipt_path.is_file()
+          proof = {
+              'schema': 'ghost-atlas.gari-jarvis-contract-proof.v1',
+              'state': 'PROVEN',
+              'resident': 'JARVIS',
+              'domain': 'GARI',
+              'publication_authority': False,
+              'context_receipt_id': context['receipt']['id'],
           }
+          Path('.proof/jarvis-gari/JARVIS-GARI-CONTRACT-LATEST.json').write_text(
+              json.dumps(proof, indent=2), encoding='utf-8'
+          )
+          PY
 
-          & $VenvPython -m pip install --disable-pip-version-check --quiet --upgrade pip
-          if($LASTEXITCODE -ne 0){ throw 'JARVIS_PIP_BOOTSTRAP_FAILED' }
-          & $VenvPython -m pip install --disable-pip-version-check --quiet -e $AppRoot
-          if($LASTEXITCODE -ne 0){ throw 'JARVIS_INSTALL_FAILED' }
+          echo 'JARVIS_GARI_CONTRACT=PROVEN'
 
-          Write-Host '=== STOP PRIOR RESIDENT ==='
-          Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -match '^python(.exe)?$' -and $_.CommandLine -like '*lantern.resident*' } |
-            ForEach-Object {
-              Write-Host ("STOP_PID={0}" -f $_.ProcessId)
-              Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
-            }
-          Start-Sleep -Milliseconds 500
+      - name: Run focused regression tests
+        run: pytest -q
 
-          Write-Host '=== START WMI-RESIDENT JARVIS ==='
-          $cmd = '"' + $VenvPython + '" -m lantern.resident --host 127.0.0.1 --port ' + $Port + ' --case-root "' + (Join-Path $AppRoot 'cases') + '" --receipt-root "' + $ReceiptRoot + '"'
-          $created = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine=$cmd}
-          if([int]$created.ReturnValue -ne 0){ throw "JARVIS_PROCESS_CREATE_FAILED=$($created.ReturnValue)" }
-          Write-Host ("JARVIS_PID={0}" -f $created.ProcessId)
-
-          function Wait-Resident([int]$seconds=45){
-            $deadline=(Get-Date).AddSeconds($seconds)
-            do {
-              try {
-                $status=Invoke-RestMethod "http://127.0.0.1:$Port/gari/v1/status" -TimeoutSec 5
-                if($status.ok -and $status.state -eq 'LIVE'){ return $status }
-              } catch {}
-              Start-Sleep -Milliseconds 750
-            } while((Get-Date) -lt $deadline)
-            throw 'JARVIS_RESIDENT_NOT_READY'
-          }
-
-          Write-Host '=== STATUS PROOF ==='
-          $status=Wait-Resident 45
-          $status | ConvertTo-Json -Depth 12
-          if($status.schema -ne 'ghost-atlas.gari-jarvis-resident.v1'){ throw 'JARVIS_STATUS_SCHEMA_MISMATCH' }
-          if($status.resident -ne 'JARVIS' -or $status.domain -ne 'GARI'){ throw 'JARVIS_IDENTITY_MISMATCH' }
-          if(-not ($status.cases -contains 'LSC-OR-CLATSOP-001')){ throw 'JARVIS_PILOT_CASE_NOT_OBSERVED' }
-
-          Write-Host '=== CAPABILITY PROOF ==='
-          $caps=Invoke-RestMethod "http://127.0.0.1:$Port/gari/v1/capabilities" -TimeoutSec 10
-          $caps | ConvertTo-Json -Depth 12
-          if(-not ($caps.capabilities | Where-Object { $_.id -eq 'research.synthesize' -and $_.provable })){ throw 'JARVIS_RESEARCH_CAPABILITY_NOT_PROVEN' }
-          if([bool]$caps.publication_authority){ throw 'JARVIS_PUBLICATION_AUTHORITY_MUST_BE_FALSE' }
-
-          Write-Host '=== CASE CONTEXT / RECEIPT PROOF ==='
-          $body=@{case_id='LSC-OR-CLATSOP-001';query='Return bounded case posture only.'} | ConvertTo-Json -Depth 8
-          $context=Invoke-RestMethod "http://127.0.0.1:$Port/gari/v1/context" -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 30
-          $context | ConvertTo-Json -Depth 20
-          if(-not $context.ok){ throw 'JARVIS_CONTEXT_NOT_OK' }
-          if($context.mode -ne 'CONTEXT_ONLY'){ throw 'JARVIS_CONTEXT_MODE_INVALID' }
-          if($context.case.case_id -ne 'LSC-OR-CLATSOP-001'){ throw 'JARVIS_CASE_CONTEXT_MISMATCH' }
-          if(-not $context.receipt.id){ throw 'JARVIS_RECEIPT_MISSING' }
-          if([bool]$context.receipt.publication_authority){ throw 'JARVIS_RECEIPT_AUTHORITY_INVALID' }
-          if(-not (Test-Path -LiteralPath ([string]$context.receipt.receipt_path))){ throw 'JARVIS_RECEIPT_FILE_MISSING' }
-
-          $proof=[ordered]@{
-            schema='ghost-atlas.gari-jarvis-promotion-proof.v1'
-            state='PROVEN'
-            observed_at=[DateTime]::UtcNow.ToString('o')
-            node=$env:COMPUTERNAME
-            resident='JARVIS'
-            domain='GARI'
-            endpoint="http://127.0.0.1:$Port/gari/v1"
-            pid=[int]$created.ProcessId
-            case_count=[int]$status.case_count
-            research_synthesize_provable=$true
-            publication_authority=$false
-            context_receipt_id=[string]$context.receipt.id
-            context_receipt_path=[string]$context.receipt.receipt_path
-          }
-          $proofPath=Join-Path $ProofRoot 'JARVIS-GARI-RESIDENT-LATEST.json'
-          $proof | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $proofPath -Encoding UTF8
-          Write-Host 'JARVIS_GARI_RESIDENT=PROVEN'
-          Write-Host ("JARVIS_GARI_PROOF={0}" -f $proofPath)
+      - name: Upload contract proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-gari-contract-proof
+          path: .proof/jarvis-gari/
