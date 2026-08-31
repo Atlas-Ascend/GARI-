@@ -1,0 +1,138 @@
+name: JARVIS GARI Resident Contract
+
+on:
+  push:
+    paths:
+      - 'lantern/resident.py'
+      - 'lantern/models.py'
+      - 'lantern/validators.py'
+      - 'cases/**'
+      - 'pyproject.toml'
+      - '.github/workflows/jarvis-gari-resident.yml'
+  pull_request:
+    paths:
+      - 'lantern/resident.py'
+      - 'lantern/models.py'
+      - 'lantern/validators.py'
+      - 'cases/**'
+      - 'pyproject.toml'
+      - '.github/workflows/jarvis-gari-resident.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: jarvis-gari-resident-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout GARI
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[dev]'
+
+      - name: Static checks
+        run: |
+          python -m py_compile lantern/resident.py
+          ruff check lantern/resident.py
+          mypy lantern/resident.py
+
+      - name: Start bounded JARVIS resident
+        run: |
+          mkdir -p .proof/jarvis-gari/receipts
+          python -m lantern.resident \
+            --host 127.0.0.1 \
+            --port 8772 \
+            --case-root cases \
+            --receipt-root .proof/jarvis-gari/receipts \
+            > .proof/jarvis-gari/stdout.log \
+            2> .proof/jarvis-gari/stderr.log &
+          echo $! > .proof/jarvis-gari/pid
+
+      - name: Prove resident contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8772/gari/v1/status > .proof/jarvis-gari/status.json; then
+              break
+            fi
+            sleep 0.5
+          done
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          status = json.loads(Path('.proof/jarvis-gari/status.json').read_text())
+          assert status['ok'] is True
+          assert status['schema'] == 'ghost-atlas.gari-jarvis-resident.v1'
+          assert status['resident'] == 'JARVIS'
+          assert status['domain'] == 'GARI'
+          assert status['state'] == 'LIVE'
+          assert 'LSC-OR-CLATSOP-001' in status['cases']
+          assert status['authority_ceiling']['may_not']
+          PY
+
+          curl -fsS http://127.0.0.1:8772/gari/v1/capabilities > .proof/jarvis-gari/capabilities.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          caps = json.loads(Path('.proof/jarvis-gari/capabilities.json').read_text())
+          assert caps['ok'] is True
+          assert caps['publication_authority'] is False
+          research = next(item for item in caps['capabilities'] if item['id'] == 'research.synthesize')
+          assert research['provable'] is True
+          PY
+
+          curl -fsS \
+            -H 'Content-Type: application/json' \
+            --data '{"case_id":"LSC-OR-CLATSOP-001","query":"Return bounded case posture only."}' \
+            http://127.0.0.1:8772/gari/v1/context \
+            > .proof/jarvis-gari/context.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          context = json.loads(Path('.proof/jarvis-gari/context.json').read_text())
+          assert context['ok'] is True
+          assert context['mode'] == 'CONTEXT_ONLY'
+          assert context['case']['case_id'] == 'LSC-OR-CLATSOP-001'
+          assert context['receipt']['id']
+          assert context['receipt']['publication_authority'] is False
+          receipt_path = Path(context['receipt']['receipt_path'])
+          assert receipt_path.is_file()
+          proof = {
+              'schema': 'ghost-atlas.gari-jarvis-contract-proof.v1',
+              'state': 'PROVEN',
+              'resident': 'JARVIS',
+              'domain': 'GARI',
+              'publication_authority': False,
+              'context_receipt_id': context['receipt']['id'],
+          }
+          Path('.proof/jarvis-gari/JARVIS-GARI-CONTRACT-LATEST.json').write_text(
+              json.dumps(proof, indent=2), encoding='utf-8'
+          )
+          PY
+
+          echo 'JARVIS_GARI_CONTRACT=PROVEN'
+
+      - name: Run focused regression tests
+        run: pytest -q
+
+      - name: Upload contract proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-gari-contract-proof
+          path: .proof/jarvis-gari/
