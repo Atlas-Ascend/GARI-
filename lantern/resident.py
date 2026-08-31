@@ -212,12 +212,16 @@ class JarvisGariResident:
         return receipt
 
 
+class JarvisGariServer(ThreadingHTTPServer):
+    resident: JarvisGariResident
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "JarvisGariResident/1.0"
 
     @property
     def resident(self) -> JarvisGariResident:
-        return cast(JarvisGariResident, getattr(self.server, "resident"))
+        return cast(JarvisGariServer, self.server).resident
 
     def log_message(self, fmt: str, *args: Any) -> None:
         print(f"{utc_now()} {fmt % args}", flush=True)
@@ -284,8 +288,8 @@ def main() -> int:
     args = parser.parse_args()
 
     resident = JarvisGariResident(case_root=Path(args.case_root), receipt_root=Path(args.receipt_root))
-    server = ThreadingHTTPServer((args.host, args.port), Handler)
-    server.resident = resident  # type: ignore[attr-defined]
+    server = JarvisGariServer((args.host, args.port), Handler)
+    server.resident = resident
     print(
         json.dumps(
             {
