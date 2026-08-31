@@ -72,7 +72,10 @@ class JarvisGariResident:
                     "publish autonomously",
                 ],
             },
-            "truth_boundary": "JARVIS is a resident interface over the existing GARI Lantern evidence kernel. It does not create publication authority or convert candidate analysis into a finding.",
+            "truth_boundary": (
+                "JARVIS is a resident interface over the existing GARI Lantern evidence kernel. "
+                "It does not create publication authority or convert candidate analysis into a finding."
+            ),
         }
 
     def capabilities(self) -> dict[str, Any]:
@@ -174,8 +177,18 @@ class JarvisGariResident:
         response["receipt"] = self._emit_receipt("validate", body, response)
         return response
 
-    def _emit_receipt(self, action: str, request_body: dict[str, Any], response_body: dict[str, Any]) -> dict[str, Any]:
-        receipt_id = "JARVIS-GARI-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:10]
+    def _emit_receipt(
+        self,
+        action: str,
+        request_body: dict[str, Any],
+        response_body: dict[str, Any],
+    ) -> dict[str, Any]:
+        receipt_id = (
+            "JARVIS-GARI-"
+            + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            + "-"
+            + uuid.uuid4().hex[:10]
+        )
         receipt_path = self.receipt_root / f"{receipt_id}.json"
         response_without_receipt = dict(response_body)
         response_without_receipt.pop("receipt", None)
@@ -191,7 +204,10 @@ class JarvisGariResident:
             "response_sha256": sha256_bytes(canonical_bytes(response_without_receipt)),
             "receipt_path": str(receipt_path),
             "publication_authority": False,
-            "truth_boundary": "Receipt proves the bounded resident action and returned context/validation state only; it does not certify a substantive finding or publication decision.",
+            "truth_boundary": (
+                "Receipt proves the bounded resident action and returned context/validation state only; "
+                "it does not certify a substantive finding or publication decision."
+            ),
         }
         receipt_path.write_text(json.dumps(receipt, indent=2, ensure_ascii=False), encoding="utf-8")
         return receipt
@@ -234,7 +250,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(200, self.resident.capabilities())
             elif path == "/gari/v1/cases":
                 cases = self.resident.cases()
-                self.send_json(200, {"ok": True, "cases": cases, "count": len(cases), "observed_at": utc_now()})
+                self.send_json(
+                    200,
+                    {"ok": True, "cases": cases, "count": len(cases), "observed_at": utc_now()},
+                )
             else:
                 self.send_json(404, {"ok": False, "error": "NOT_FOUND"})
         except Exception as exc:
