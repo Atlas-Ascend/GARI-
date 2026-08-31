@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urlparse
 
 from lantern.validators import ValidationFailure, load_case, validate_bundle
@@ -116,7 +116,6 @@ class JarvisGariResident:
                 "sources": len(bundle.sources),
                 "entities": len(bundle.entities),
                 "money_events": len(bundle.money_events),
-                "outcomes": len(bundle.outcomes),
                 "claims": len(bundle.claims),
                 "corrections": len(bundle.corrections),
             },
@@ -218,7 +217,7 @@ class Handler(BaseHTTPRequestHandler):
 
     @property
     def resident(self) -> JarvisGariResident:
-        return self.server.resident  # type: ignore[attr-defined]
+        return cast(JarvisGariResident, getattr(self.server, "resident"))
 
     def log_message(self, fmt: str, *args: Any) -> None:
         print(f"{utc_now()} {fmt % args}", flush=True)
