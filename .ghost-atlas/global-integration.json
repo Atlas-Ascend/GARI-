@@ -1,0 +1,12 @@
+{
+  "schema":"ghost-atlas.global-integration.mount.v1",
+  "event_id":"GA-GLOBAL-INTEGRATION-001",
+  "repo":"Atlas-Ascend/GARI-",
+  "profile":"research-runtime",
+  "authority":"Atlas-Ascend/Eden-2.0/global-estate-integration/contract.v1.json",
+  "inherits_global_capability_spine":true,
+  "local_primary":"EDEN/GA-NIF/Thoth/ProofGrid",
+  "require_receipt":true,
+  "self_promotion":false,
+  "state":"MOUNTED_PENDING_GLOBAL_PROOF"
+}
